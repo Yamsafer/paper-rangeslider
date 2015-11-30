@@ -9,13 +9,11 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS
 -->
-
 <link rel="import" href="../paper-styles/paper-styles.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../iron-behaviors/iron-control-state.html">
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../paper-input/paper-input.html">
-
 <!--
 `paper-rangeslider` allows user to select a range of values from a range of values by
 moving the slider thumbs.  The interactive nature of the slider makes it a
@@ -84,501 +82,522 @@ To change the slider disabled container color:
       --paper-rangeslider-disabled-container-color: #ccc;
     }
 -->
-
 <dom-module id="paper-rangeslider">
-  <style>
+    <style>
     :host {
-      display: inline-block;
-      width: 200px;
-      cursor: default;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        display: inline-block;
+        width: 200px;
+        cursor: default;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
 
     #sliderBar {
-      --paper-progress-container-color: var(--paper-rangeslider-container-color, --google-grey-300);
-      --paper-progress-active-color: var(--paper-rangeslider-container-color, --google-grey-300);
-      --paper-progress-secondary-color: var(--paper-rangeslider-active-color, --google-blue-700);
+        --paper-progress-container-color: var(--paper-rangeslider-container-color, --google-grey-300);
+        --paper-progress-active-color: var(--paper-rangeslider-container-color, --google-grey-300);
+        --paper-progress-secondary-color: var(--paper-rangeslider-active-color, --google-blue-700);
     }
-
     /* if disabled */
+
     :host([disabled]) #sliderBar {
-      --paper-progress-disabled-active-color: var(--paper-rangeslider-disabled-container-color, --google-grey-300);
-      --paper-progress-container-color: var(--paper-rangeslider-disabled-container-color, --google-grey-300);
-      --paper-progress-disabled-secondary-color: var(--paper-rangeslider-disabled-active-color, --google-grey-500);
+        --paper-progress-disabled-active-color: var(--paper-rangeslider-disabled-container-color, --google-grey-300);
+        --paper-progress-container-color: var(--paper-rangeslider-disabled-container-color, --google-grey-300);
+        --paper-progress-disabled-secondary-color: var(--paper-rangeslider-disabled-active-color, --google-grey-500);
     }
 
     :host(:focus) {
-      outline: none;
+        outline: none;
     }
 
     #sliderContainer {
-      position: relative;
-      width: calc(100% - 32px);
-      height: 32px;
+        position: relative;
+        width: calc(100% - 32px);
+        height: 32px;
     }
-
     /*
       40 <input Min> + 32 <offset from touch area (32x32 square)> + 40 <input Max>
     */
+
     #sliderContainer.editable {
-      float: left;
-      width: calc(100% - 40px - 32px - 40px);
-      margin: 12px 0;
+        float: left;
+        width: calc(100% - 40px - 32px - 40px);
+        margin: 12px 0;
     }
 
     .bar-container {
-      position: absolute;
-      top: 0;
-      left: 16px;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
+        position: absolute;
+        top: 0;
+        left: 16px;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
     }
 
     .ring > .bar-container {
-      left: 20px;
-      width: calc(100% - 4px);
-      transition: left 0.18s ease, width 0.18s ease;
+        left: 20px;
+        width: calc(100% - 4px);
+        transition: left 0.18s ease, width 0.18s ease;
     }
 
     .ring.expand:not(.pin) > .bar-container {
-      left: 30px;
-      width: calc(100% - 14px);
+        left: 30px;
+        width: calc(100% - 14px);
     }
 
     .ring.expand.dragging > .bar-container {
-      transition: none;
+        transition: none;
     }
 
     #sliderBar {
-      position: absolute;
-      top: 15px;
-      left: 0;
-      height: 2px;
-      width: 100%;
-      padding: 8px 0;
-      margin: -8px 0;
+        position: absolute;
+        top: 15px;
+        left: 0;
+        height: 2px;
+        width: 100%;
+        padding: 8px 0;
+        margin: -8px 0;
     }
 
     .ring #sliderBar {
-      left: -4px;
-      width: calc(100% + 4px);
+        left: -4px;
+        width: calc(100% + 4px);
     }
 
     .ring.expand:not(.pin) #sliderBar {
-      left: -14px;
-      width: calc(100% + 14px);
+        left: -14px;
+        width: calc(100% + 14px);
     }
 
     .slider-markers {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      height: 2px;
-      width: calc(100% + 2px);
-      box-sizing: border-box;
-      pointer-events: none;
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        height: 2px;
+        width: calc(100% + 2px);
+        box-sizing: border-box;
+        pointer-events: none;
     }
 
     .slider-markers::after,
     .slider-marker::after {
-      content: "";
-      display: block;
-      width: 2px;
-      height: 2px;
-      border-radius: 50%;
-      background-color: black;
+        content: "";
+        display: block;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background-color: black;
     }
 
     .sliderKnob {
-      @apply(--layout-center-justified);
-      @apply(--layout-center);
-      @apply(--layout-horizontal);
-
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 32px;
-      height: 32px;
-
-      /*border: 1px solid #212121;*/
-      /*left: calc(0% - 16px);*/
+        @apply(--layout-center-justified);
+        @apply(--layout-center);
+        @apply(--layout-horizontal);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        /*border: 1px solid #212121;*/
+        /*left: calc(0% - 16px);*/
     }
 
     .transiting > .sliderKnob {
-      transition: left 0.08s ease;
+        transition: left 0.08s ease;
     }
 
     .sliderKnob:focus {
-      outline: none;
+        outline: none;
     }
 
     .sliderKnob.dragging {
-      transition: none;
+        transition: none;
     }
 
     .snaps > .sliderKnob.dragging {
-      transition: -webkit-transform 0.08s ease;
-      transition: transform 0.08s ease;
+        transition: -webkit-transform 0.08s ease;
+        transition: transform 0.08s ease;
     }
 
     .sliderKnobInner {
-      width: 12px;
-      height: 12px;
-      box-sizing: border-box;
-      -moz-box-sizing: border-box;
-      border-radius: 50%;
-      background-color: var(--paper-rangeslider-knob-color, --google-blue-700);
-      transition-property: height, width, background-color, border, margin;
-      transition-duration: 0.1s;
-      transition-timmediateMing-function: ease;
-
-      /*border: 1px solid #212121;*/
+        width: 26px;
+        height: 26px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        border-radius: 50%;
+        background-color: var(--paper-rangeslider-knob-color, --google-blue-700);
+        transition-property: height, width, background-color, border, margin;
+        transition-duration: 0.1s;
+        transition-timmediateMing-function: ease;
+        /*border: 1px solid #212121;*/
     }
 
-    #sliderKnobmin > .sliderKnobInner{
-      margin-left: 16px;
-      border-radius: 50% 50% 0 50%;
-      -webkit-transform: rotate(-45deg);
-      transform: rotate(-45deg);
+    #sliderKnobmin > .sliderKnobInner {
+        margin-left: 16px;
+        border-radius: 50% 50% 0 50%;
+        -webkit-transform: rotate(-45deg);
+        transform: rotate(-45deg);
     }
 
-    #sliderKnobmax > .sliderKnobInner{
-      margin-right: 16px;
-      border-radius: 50% 50% 50% 0;
-      -webkit-transform: rotate(45deg);
-      transform: rotate(45deg);
+    #sliderKnobmax > .sliderKnobInner {
+        margin-right: 16px;
+        border-radius: 50% 50% 50% 0;
+        -webkit-transform: rotate(45deg);
+        transform: rotate(45deg);
     }
 
     .expand:not(.pin) > .sliderKnob > .sliderKnobInner {
-      width: 100%;
-      height: 100%;
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
+        width: 100%;
+        height: 100%;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
     }
 
     .expand:not(.pin) > #sliderKnobmin > .sliderKnobInner {
-      margin-left: -10px!important;
+        margin-left: -10px!important;
     }
 
     .expand:not(.pin) > #sliderKnobmax > .sliderKnobInner {
-      margin-right: -10px!important;*/
+        margin-right: -10px!important;
+        */
+    }
+
+    .bo2bo2{
+      width: 9px;
+      height: 9px;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: white;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .expand:not(.pin) .bo2bo2{
+      display: none !important;
     }
 
     .ring > .sliderKnob > .sliderKnobInner {
-      background-color: transparent;
-      border: 2px solid var(--paper-rangeslider-knob-color, --google-blue-700);;
+        background-color: transparent;
+        border: 2px solid var(--paper-rangeslider-knob-color, --google-blue-700);
+        ;
     }
 
     .sliderKnobInner::before {
-      background-color: var(--paper-rangeslider-pin-color, --google-blue-700);
+        background-color: var(--paper-rangeslider-pin-color, --google-blue-700);
     }
 
     .pin > .sliderKnob > .sliderKnobInner::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 26px;
-      height: 26px;
-      margin-left: 3px;
-      border-radius: 50% 50% 50% 0;
-      -webkit-transform: rotate(-45deg) scale(0) translate(0);
-      transform: rotate(-45deg) scale(0) translate(0);
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 26px;
+        height: 26px;
+        margin-left: 3px;
+        border-radius: 50% 50% 50% 0;
+        -webkit-transform: rotate(-45deg) scale(0) translate(0);
+        transform: rotate(-45deg) scale(0) translate(0);
     }
 
     .sliderKnobInner::before,
     .sliderKnobInner::after {
-      transition: -webkit-transform .2s ease, background-color .18s ease;
-      transition: transform .2s ease, background-color .18s ease;
+        transition: -webkit-transform .2s ease, background-color .18s ease;
+        transition: transform .2s ease, background-color .18s ease;
+    }
+
+
+    .sliderKnobInner::after{
+                content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 26px;
+        height: 26px;
+        margin-left: 3px;
+        border-radius: 50% 50% 50% 0;
+        -webkit-transform: rotate(-45deg) scale(0) translate(0);
+        transform: rotate(-45deg) scale(0) translate(0);
+
+     /*   content: " ";
+        width: 7px;
+        height: 7px;
+        background: white;
+        position: absolute;
+        top: 13px;
+        left: 13px;
+        border-radius: 7px;*/
     }
 
     .pin.expand > .sliderKnob > .sliderKnobInner::before {
-      -webkit-transform: rotate(-45deg) scale(1) translate(17px, -17px);
-      transform: rotate(-45deg) scale(1) translate(17px, -17px);
+        -webkit-transform: rotate(-45deg) scale(1) translate(17px, -17px);
+        transform: rotate(-45deg) scale(1) translate(17px, -17px);
     }
 
     .pin > .sliderKnob > .sliderKnobInner::after {
-      content: attr(value);
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 32px;
-      height: 26px;
-      text-align: center;
-      color: var(--paper-rangeslider-font-color, #fff);
-      font-size: 10px;
-      -webkit-transform: scale(0) translate(0);
-      transform: scale(0) translate(0);
+        content: attr(value);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 32px;
+        height: 26px;
+        text-align: center;
+        color: var(--paper-rangeslider-font-color, #fff);
+        font-size: 10px;
+        -webkit-transform: scale(0) translate(0);
+        transform: scale(0) translate(0);
     }
 
     .pin.expand > .sliderKnob > .sliderKnobInner::after {
-      -webkit-transform: scale(1) translate(0, -17px);
-      transform: scale(1) translate(0, -17px);
+        -webkit-transform: scale(1) translate(0, -17px);
+        transform: scale(1) translate(0, -17px);
     }
-
     /* editable: paper-input */
-    #inputMin{
-      float: left;
+
+    #inputMin {
+        float: left;
     }
 
     #inputMax {
-      float: right;
+        float: right;
     }
 
     .slider-input {
-      width: 40px;
-      
-      overflow: hidden;
+        width: 40px;
+        overflow: hidden;
     }
-
     /* disabled state */
+
     #sliderContainer.disabled {
-      pointer-events: none;
+        pointer-events: none;
     }
 
     .disabled > .sliderKnob > .sliderKnobInner {
-      width: 8px;
-      height: 8px;
-      background-color: var(--paper-rangeslider-disabled-knob-color, --google-grey-500);
+        width: 8px;
+        height: 8px;
+        background-color: var(--paper-rangeslider-disabled-knob-color, --google-grey-500);
     }
 
     .disabled.ring > .sliderKnob > .sliderKnobInner {
-      background-color: transparent;
+        background-color: transparent;
     }
-  </style>
-
-  <template>
-    <template is="dom-if" if="{{!disabled}}">
-    </template>
-
-    <template is="dom-if" if="[[editable]]">
-      <paper-input id="inputMin" class="slider-input" disabled$="[[disabled]]" on-change="_inputChange"></paper-input>
-    </template>
-
-    <div id="sliderContainer" class$="[[_getClassNames(disabled, pin, snaps, immediateMin, immediateMax, min, expand, dragging, transiting, editable)]]">
-      <div class="bar-container">
-        <paper-progress id="sliderBar" aria-hidden="true" min="[[min]]" max="[[max]]" value="[[immediateMin]]" secondary-progress="[[immediateMax]]"
-          on-down="_bardown" on-up="_resetKnob" on-track="_onTrack"></paper-progress>
-      </div>
-
-      <template is="dom-if" if="[[snaps]]">
-        <div class="slider-markers horizontal layout">
-          <template is="dom-repeat" items="[[markers]]">
-            <div class="slider-marker flex"></div>
-          </template>
+    </style>
+    <template>
+        <template is="dom-if" if="{{!disabled}}">
+        </template>
+        <template is="dom-if" if="[[editable]]">
+            <paper-input id="inputMin" class="slider-input" disabled$="[[disabled]]" on-change="_inputChange"></paper-input>
+        </template>
+        <div id="sliderContainer" class$="[[_getClassNames(disabled, pin, snaps, immediateMin, immediateMax, min, expand, dragging, transiting, editable)]]">
+            <div class="bar-container">
+                <paper-progress id="sliderBar" aria-hidden="true" min="[[min]]" max="[[max]]" value="[[immediateMin]]" secondary-progress="[[immediateMax]]" on-down="_bardown" on-up="_resetKnob" on-track="_onTrack"></paper-progress>
+            </div>
+            <template is="dom-if" if="[[snaps]]">
+                <div class="slider-markers horizontal layout">
+                    <template is="dom-repeat" items="[[markers]]">
+                        <div class="slider-marker flex"></div>
+                    </template>
+                </div>
+            </template>
+            <div id="sliderKnobMin" class="sliderKnob" on-down="_knobdown" on-up="_resetKnob" on-track="_onTrack" on-transitionend="_knobTransitionEnd" center-justified center horizontal layout>
+                <div class="sliderKnobInner" value$="[[immediateMin]]">
+                  <div class="bo2bo2"></div>
+                </div>
+            </div>
+            <div id="sliderKnobMax" class="sliderKnob" on-down="_knobdown" on-up="_resetKnob" on-track="_onTrack" on-transitionend="_knobTransitionEnd" center-justified center horizontal layout>
+                <div class="sliderKnobInner" value$="[[immediateMax]]">
+                  <div class="bo2bo2"></div>
+                </div>
+            </div>
         </div>
-      </template>
-
-      <div id="sliderKnobMin" class="sliderKnob" on-down="_knobdown" on-up="_resetKnob"
-        on-track="_onTrack"
-        on-transitionend="_knobTransitionEnd"
-        center-justified center horizontal layout>
-
-        <div class="sliderKnobInner" value$="[[immediateMin]]"></div>
-      </div>
-
-      <div id="sliderKnobMax" class="sliderKnob" on-down="_knobdown" on-up="_resetKnob"
-        on-track="_onTrack"
-        on-transitionend="_knobTransitionEnd"
-        center-justified center horizontal layout>
-
-        <div class="sliderKnobInner" value$="[[immediateMax]]"></div>
-      </div>
-    </div>
-
-    <template is="dom-if" if="[[editable]]">
-      <paper-input id="inputMax" class="slider-input" disabled$="[[disabled]]" on-change="_inputChange"></paper-input>
+        <template is="dom-if" if="[[editable]]">
+            <paper-input id="inputMax" class="slider-input" disabled$="[[disabled]]" on-change="_inputChange"></paper-input>
+        </template>
     </template>
-
-  </template>
 </dom-module>
-
 <script>
-  /**
-   * @todo update fired events
-   * @todo update aria vars
-   */
+/**
+ * @todo update fired events
+ * @todo update aria vars
+ */
 
-  Polymer({
+Polymer({
     is: 'paper-rangeslider',
 
     behaviors: [
-      Polymer.IronRangeBehavior,
-      Polymer.IronControlState
+        Polymer.IronRangeBehavior,
+        Polymer.IronControlState
     ],
 
     properties: {
 
-      /**
-       * If true, the slider thumb snaps to tick marks evenly spaced based
-       * on the `step` property value.
-       */
-      snaps: {
-        type: Boolean,
-        value: false,
-        notify: true
-      },
+        /**
+         * If true, the slider thumb snaps to tick marks evenly spaced based
+         * on the `step` property value.
+         */
+        snaps: {
+            type: Boolean,
+            value: false,
+            notify: true
+        },
 
-      /**
-       * If true, a pin with numeric value label is shown when the slider thumb
-       * is pressed.  Use for settings for which users need to know the exact
-       * value of the setting.
-       */
-      pin: {
-        type: Boolean,
-        value: false,
-        notify: true
-      },
+        /**
+         * If true, a pin with numeric value label is shown when the slider thumb
+         * is pressed.  Use for settings for which users need to know the exact
+         * value of the setting.
+         */
+        pin: {
+            type: Boolean,
+            value: false,
+            notify: true
+        },
 
-      /**
-       * The number that represents the current secondary progress.
-       */
-      secondaryProgress: {
-        type: Number,
-        value: 0,
-        notify: true,
-        observer: '_secondaryProgressChanged'
-      },
+        /**
+         * The number that represents the current secondary progress.
+         */
+        secondaryProgress: {
+            type: Number,
+            value: 0,
+            notify: true,
+            observer: '_secondaryProgressChanged'
+        },
 
-     /**
-      * The number that represents the current min value.
-      */
-      valueMin: {
-        type: Number,
-        value: 0,
-        notify: true,
-        reflectToAttribute: true
-      },
+        /**
+         * The number that represents the current min value.
+         */
+        valueMin: {
+            type: Number,
+            value: 0,
+            notify: true,
+            reflectToAttribute: true
+        },
 
-     /**
-      * The number that represents the current max value.
-      */
-      valueMax: {
-        type: Number,
-        value: 100,
-        notify: true,
-        reflectToAttribute: true
-      },
+        /**
+         * The number that represents the current max value.
+         */
+        valueMax: {
+            type: Number,
+            value: 100,
+            notify: true,
+            reflectToAttribute: true
+        },
 
-      /**
-       * If true, an input is shown and user can use it to set the slider value.
-       */
-      editable: {
-        type: Boolean,
-        value: false
-      },
+        /**
+         * If true, an input is shown and user can use it to set the slider value.
+         */
+        editable: {
+            type: Boolean,
+            value: false
+        },
 
-      /**
-       * The immediate min value of the slider.  This value is updated while the user
-       * is dragging the min slider.
-       * @todo: should be read only
-       */
-      immediateMin: {
-        type: Number,
-        value: 0,
-        notify: true,
-        reflectToAttribute: true
-      },
+        /**
+         * The immediate min value of the slider.  This value is updated while the user
+         * is dragging the min slider.
+         * @todo: should be read only
+         */
+        immediateMin: {
+            type: Number,
+            value: 0,
+            notify: true,
+            reflectToAttribute: true
+        },
 
-      /**
-       * The immediate max value of the slider.  This value is updated while the user
-       * is dragging the max slider.
-       * @todo: should be read only
-       */
-      immediateMax: {
-        type: Number,
-        value: 0,
-        notify: true,
-        reflectToAttribute: true
-      },
+        /**
+         * The immediate max value of the slider.  This value is updated while the user
+         * is dragging the max slider.
+         * @todo: should be read only
+         */
+        immediateMax: {
+            type: Number,
+            value: 0,
+            notify: true,
+            reflectToAttribute: true
+        },
 
-      /**
-       * The maximum number of markers
-       */
-      maxMarkers: {
-        type: Number,
-        value: 0,
-        notify: true,
-        observer: '_maxMarkersChanged'
-      },
+        /**
+         * The maximum number of markers
+         */
+        maxMarkers: {
+            type: Number,
+            value: 0,
+            notify: true,
+            observer: '_maxMarkersChanged'
+        },
 
-      /**
-       * If true, the knob is expanded
-       */
-      expand: {
-        type: Boolean,
-        value: false,
-        readOnly: true
-      },
+        /**
+         * If true, the knob is expanded
+         */
+        expand: {
+            type: Boolean,
+            value: false,
+            readOnly: true
+        },
 
-      /**
-       * True when the user is dragging the slider.
-       */
-      transiting: {
-        type: Boolean,
-        value: false,
-        readOnly: true
-      },
+        /**
+         * True when the user is dragging the slider.
+         */
+        transiting: {
+            type: Boolean,
+            value: false,
+            readOnly: true
+        },
 
-      /**
-       * True when the user is dragging the slider.
-       */
-      dragging: {
-        type: Boolean,
-        value: false,
-        readOnly: true
-      },
+        /**
+         * True when the user is dragging the slider.
+         */
+        dragging: {
+            type: Boolean,
+            value: false,
+            readOnly: true
+        },
 
-      markers: {
-        readOnly: true,
-        value: []
-      },
+        markers: {
+            readOnly: true,
+            value: []
+        },
 
-      ratioMin: {
-        type: Number,
-        value: 0,
-        notify: true,
-        reflectToAttribute: true
-      },
+        ratioMin: {
+            type: Number,
+            value: 0,
+            notify: true,
+            reflectToAttribute: true
+        },
 
-      ratioMax: {
-        type: Number,
-        value: 100,
-        notify: true,
-        reflectToAttribute: true
-      },
+        ratioMax: {
+            type: Number,
+            value: 100,
+            notify: true,
+            reflectToAttribute: true
+        },
 
-      active: {
-        type: String,
-        value: '',
-        notify: true,
-        reflectToAttribute: true
-      },
+        active: {
+            type: String,
+            value: '',
+            notify: true,
+            reflectToAttribute: true
+        },
 
     },
 
     // order matters right now...
     // shouldn't?
     observers: [
-      '_updateKnobs(valueMin, valueMax, min, max, snaps, step)',
-      '_minChanged(min)',
-      '_maxChanged(max)',
-      '_valuesChanged(valueMin, valueMax)',
-      '_immediateValueChanged(immediateMin, immediateMax)'
+        '_updateKnobs(valueMin, valueMax, min, max, snaps, step)',
+        '_minChanged(min)',
+        '_maxChanged(max)',
+        '_valuesChanged(valueMin, valueMax)',
+        '_immediateValueChanged(immediateMin, immediateMax)'
     ],
 
     ready: function() {
-      // issue polymer/polymer#1305
-      this.async(function() {
-        //window.console.log('async');
-        this._updateKnobs(this.valueMin, this.valueMax);
-        this._updateInputValues();
-      }, 1);
+        // issue polymer/polymer#1305
+        this.async(function() {
+            //window.console.log('async');
+            this._updateKnobs(this.valueMin, this.valueMax);
+            this._updateInputValues();
+        }, 1);
     },
 
     /**
@@ -586,7 +605,7 @@ To change the slider disabled container color:
      * @method increment
      */
     increment: function() {
-      this.value = this._clampValue(this.value + this.step);
+        this.value = this._clampValue(this.value + this.step);
     },
 
     /**
@@ -594,244 +613,240 @@ To change the slider disabled container color:
      * @method decrement
      */
     decrement: function() {
-      this.value = this._clampValue(this.value - this.step);
+        this.value = this._clampValue(this.value - this.step);
     },
 
     _updateKnobs: function(valueMin, valueMax) {
-      // update min knob
-      this.ratioMin = this._calcRatio(valueMin);
-      this._positionKnob(this.ratioMin, 'Min');
+        // update min knob
+        this.ratioMin = this._calcRatio(valueMin);
+        this._positionKnob(this.ratioMin, 'Min');
 
-      // update max knob
-      this.ratioMax = this._calcRatio(valueMax);
-      this._positionKnob(this.ratioMax, 'Max');
+        // update max knob
+        this.ratioMax = this._calcRatio(valueMax);
+        this._positionKnob(this.ratioMax, 'Max');
     },
 
     _minChanged: function() {
-      this.setAttribute('aria-valuemin', this.min);
+        this.setAttribute('aria-valuemin', this.min);
     },
 
     _maxChanged: function() {
-      this.setAttribute('aria-valuemax', this.max);
+        this.setAttribute('aria-valuemax', this.max);
     },
 
     _valuesChanged: function() {
-      this.setAttribute('aria-valueminnow', this.valueMin);
-      this.setAttribute('aria-valuemaxnow', this.valueMax);
-      this.fire('value-change');
+        this.setAttribute('aria-valueminnow', this.valueMin);
+        this.setAttribute('aria-valuemaxnow', this.valueMax);
+        this.fire('value-change');
     },
 
     _immediateValueChanged: function() {
-      if (!this.dragging) {
-        this.valueMin = this.immediateMin;
-        this.valueMax = this.immediateMax;
-      }
-      this._updateInputValues();
-      this.fire('immediate-value-change');
+        if (!this.dragging) {
+            this.valueMin = this.immediateMin;
+            this.valueMax = this.immediateMax;
+        }
+        this._updateInputValues();
+        this.fire('immediate-value-change');
     },
 
     _secondaryProgressChanged: function() {
-      this.secondaryProgress = this._clampValue(this.secondaryProgress);
+        this.secondaryProgress = this._clampValue(this.secondaryProgress);
     },
 
     _updateInputValues: function() {
-      if (this.editable) {
-        /**
-         * @todo make sure it is available!
-         */
-        this.$$('#inputMin').value = this.immediateMin;
-        this.$$('#inputMax').value = this.immediateMax;
-      }
+        if (this.editable) {
+            /**
+             * @todo make sure it is available!
+             */
+            this.$$('#inputMin').value = this.immediateMin;
+            this.$$('#inputMax').value = this.immediateMax;
+        }
     },
 
     _expandKnob: function() {
-      this._setExpand(true);
+        this._setExpand(true);
     },
 
     _resetKnob: function() {
-      if (this._expandJob) {
-        this._expandJob.stop();
-      }
-      this._setExpand(false);
+        if (this._expandJob) {
+            this._expandJob.stop();
+        }
+        this._setExpand(false);
     },
 
     _positionKnob: function(ratio, position) {
-      // position == min || max
-      this['immediate' + position] = this._calcStep(this._calcKnobPosition(ratio)) || 0;
-      this['ratio' + position] = this.snaps ? this._calcRatio(this['immediate' + position]) : ratio;
-      this.$['sliderKnob' + position].style.left = this['ratio' + position] * 100 + '%';
+        // position == min || max
+        this['immediate' + position] = this._calcStep(this._calcKnobPosition(ratio)) || 0;
+        this['ratio' + position] = this.snaps ? this._calcRatio(this['immediate' + position]) : ratio;
+        this.$['sliderKnob' + position].style.left = this['ratio' + position] * 100 + '%';
     },
 
     _inputChange: function() {
-      // make sure it is available!
-      this.valueMin = this.$$('#inputMin').value;
-      this.valueMax = this.$$('#inputMax').value;
-      this.fire('change');
+        // make sure it is available!
+        this.valueMin = this.$$('#inputMin').value;
+        this.valueMax = this.$$('#inputMax').value;
+        this.fire('change');
     },
 
     _calcKnobPosition: function(ratio) {
-      return (this.max - this.min) * ratio + this.min;
+        return (this.max - this.min) * ratio + this.min;
     },
 
     _onTrack: function(event) {
-      switch (event.detail.state) {
-        case 'end':
-          this._trackEnd(event);
-          break;
-        case 'track':
-          this._trackX(event);
-          break;
-        case 'start':
-          this._trackStart(event);
-          break;
-      }
+        switch (event.detail.state) {
+            case 'end':
+                this._trackEnd(event);
+                break;
+            case 'track':
+                this._trackX(event);
+                break;
+            case 'start':
+                this._trackStart(event);
+                break;
+        }
     },
 
     _trackStart: function(event) {
-      var id = event.target.id || event.target.parentElement.id;
-      if (id === 'sliderKnobMin'){
-        this.active = 'Min';
-      }
-      else if (id === 'sliderKnobMax'){
-        this.active = 'Max';
-      }
-      else{
-        // dragging the bar..!
-        this.active = 'bar';
-        return;
-      }
+        var id = event.target.id || event.target.parentElement.id;
+        if (id === 'sliderKnobMin') {
+            this.active = 'Min';
+        } else if (id === 'sliderKnobMax') {
+            this.active = 'Max';
+        } else {
+            // dragging the bar..!
+            this.active = 'bar';
+            return;
+        }
 
-      this._w = this.$.sliderBar.offsetWidth;
-      this._x = this['ratio' + this.active] * this._w;
-      this._startx = this._x || 0;
-      this._minx = - this._startx;
-      this._maxx = this._w - this._startx;
-      this.$['sliderKnob' + this.active].classList.add('dragging');
-      this._setDragging(true);
-      event.preventDefault();
+        this._w = this.$.sliderBar.offsetWidth;
+        this._x = this['ratio' + this.active] * this._w;
+        this._startx = this._x || 0;
+        this._minx = -this._startx;
+        this._maxx = this._w - this._startx;
+        this.$['sliderKnob' + this.active].classList.add('dragging');
+        this._setDragging(true);
+        event.preventDefault();
     },
 
     _trackX: function(e) {
-      if (!this.dragging) {
-        this._trackStart(e);
-      }
+        if (!this.dragging) {
+            this._trackStart(e);
+        }
 
-      if(this.active === 'bar'){
-        return;
-      }
+        if (this.active === 'bar') {
+            return;
+        }
 
-      var x = Math.min(this._maxx, Math.max(this._minx, e.detail.dx));
-      this._x = this._startx + x;
-      var immediate = this._calcStep(
-          this._calcKnobPosition(this._x / this._w)) || 0;
+        var x = Math.min(this._maxx, Math.max(this._minx, e.detail.dx));
+        this._x = this._startx + x;
+        var immediate = this._calcStep(
+            this._calcKnobPosition(this._x / this._w)) || 0;
 
-      // make sure min =< max
-      // and max >= min
-      if(this.active === 'Min' && immediate > this.immediateMax){
-        this['immediate' + this.active] = this.immediateMax;
-        var ratioMax = this._calcRatio(this['immediate' + this.active]);
-        x = ratioMax * this._w - this._startx;
-      }
-      else if(this.active === 'Max' && immediate < this.immediateMin){
-        this['immediate' + this.active] = this.immediateMin;
-        var ratioMin = this._calcRatio(this['immediate' + this.active]);
-        x = ratioMin * this._w - this._startx ;
-      }
-      else{
-        this['immediate' + this.active] = immediate;
-      }
-      
-      var s =  this.$['sliderKnob' + this.active].style;
+        // make sure min =< max
+        // and max >= min
+        if (this.active === 'Min' && immediate > this.immediateMax) {
+            this['immediate' + this.active] = this.immediateMax;
+            var ratioMax = this._calcRatio(this['immediate' + this.active]);
+            x = ratioMax * this._w - this._startx;
+        } else if (this.active === 'Max' && immediate < this.immediateMin) {
+            this['immediate' + this.active] = this.immediateMin;
+            var ratioMin = this._calcRatio(this['immediate' + this.active]);
+            x = ratioMin * this._w - this._startx;
+        } else {
+            this['immediate' + this.active] = immediate;
+        }
 
-      s.transform = s.webkitTransform = 'translate3d(' + (this.snaps ?
-          (this._calcRatio(this['immediate' + this.active]) * this._w) - this._startx : x) + 'px, 0, 0)';
+        var s = this.$['sliderKnob' + this.active].style;
+
+        s.transform = s.webkitTransform = 'translate3d(' + (this.snaps ?
+            (this._calcRatio(this['immediate' + this.active]) * this._w) - this._startx : x) + 'px, 0, 0)';
 
     },
 
     _trackEnd: function() {
 
-      if(this.active === 'bar'){
-        return;
-      }
+        if (this.active === 'bar') {
+            return;
+        }
 
-      var s =  this.$['sliderKnob' + this.active].style;
-      s.transform = s.webkitTransform = '';
-      this.$['sliderKnob' + this.active].classList.remove('dragging');
-      this._setDragging(false);
-      this._resetKnob();
-      this['value' + this.active] = this['immediate' + this.active];
-      this.active = '';
-      this.fire('change');
+        var s = this.$['sliderKnob' + this.active].style;
+        s.transform = s.webkitTransform = '';
+        this.$['sliderKnob' + this.active].classList.remove('dragging');
+        this._setDragging(false);
+        this._resetKnob();
+        this['value' + this.active] = this['immediate' + this.active];
+        this.active = '';
+        this.fire('change');
     },
 
     _knobdown: function(e) {
-      e.preventDefault();
-      this._expandKnob();
+        e.preventDefault();
+        this._expandKnob();
     },
 
     _bardown: function() {
-      //e.preventDefault();
-      // this._setTransiting(true);
-      // this._w = this.$.sliderBar.offsetWidth;
-      // var rect = this.$.sliderBar.getBoundingClientRect();
-      // var ratio = (e.detail.x - rect.left) / this._w;
-      // this._positionKnob(ratio);
-      // this._expandJob = this.debounce(this._expandJob, this._expandKnob, 60);
+        //e.preventDefault();
+        // this._setTransiting(true);
+        // this._w = this.$.sliderBar.offsetWidth;
+        // var rect = this.$.sliderBar.getBoundingClientRect();
+        // var ratio = (e.detail.x - rect.left) / this._w;
+        // this._positionKnob(ratio);
+        // this._expandJob = this.debounce(this._expandJob, this._expandKnob, 60);
 
-      // this.async(function() {
-      //   this.fire('change');
-      // });
+        // this.async(function() {
+        //   this.fire('change');
+        // });
     },
 
     _knobTransitionEnd: function(e) {
-      if (e.target === this.$.sliderKnob) {
-        this._setTransiting(false);
-      }
+        if (e.target === this.$.sliderKnob) {
+            this._setTransiting(false);
+        }
     },
 
     _maxMarkersChanged: function(maxMarkers) {
-      var l = ((this.max - this.min) / this.step);
-      if (!this.snaps && l > maxMarkers) {
-        this._setMarkers([]);
-      } else {
-        this._setMarkers(new Array(l));
-      }
+        var l = ((this.max - this.min) / this.step);
+        if (!this.snaps && l > maxMarkers) {
+            this._setMarkers([]);
+        } else {
+            this._setMarkers(new Array(l));
+        }
     },
 
     _getClassNames: function() {
-      var classes = {};
+        var classes = {};
 
-      classes.disabled = this.disabled;
-      classes.pin = this.pin;
-      classes.snaps = this.snaps;
-      classes.ring = this.immediateMax === this.immediateMin;
-      classes.expand = this.expand;
-      classes.dragging = this.dragging;
-      classes.transiting = this.transiting;
-      classes.editable = this.editable;
+        classes.disabled = this.disabled;
+        classes.pin = this.pin;
+        classes.snaps = this.snaps;
+        classes.ring = this.immediateMax === this.immediateMin;
+        classes.expand = this.expand;
+        classes.dragging = this.dragging;
+        classes.transiting = this.transiting;
+        classes.editable = this.editable;
 
-      return Object.keys(classes).filter(
-        function(className) {
-          return classes[className];
-        }).join(' ');
+        return Object.keys(classes).filter(
+            function(className) {
+                return classes[className];
+            }).join(' ');
     },
 
     _incrementKey: function(ev, keys) {
-      if (keys.key === 'end') {
-        this.value = this.max;
-      } else {
-        this.increment();
-      }
-      this.fire('change');
+        if (keys.key === 'end') {
+            this.value = this.max;
+        } else {
+            this.increment();
+        }
+        this.fire('change');
     },
 
     _decrementKey: function(ev, keys) {
-      if (keys.key === 'home') {
-        this.value = this.min;
-      } else {
-        this.decrement();
-      }
-      this.fire('change');
+        if (keys.key === 'home') {
+            this.value = this.min;
+        } else {
+            this.decrement();
+        }
+        this.fire('change');
     }
-  });
+});
 </script>
